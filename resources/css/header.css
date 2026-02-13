@@ -1,0 +1,49 @@
+header {
+    background-color: #002361e6;
+}
+
+form input {
+    height: 35px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: .15rem;
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    width: 95%;
+}
+
+#loginBtn {
+    border: 1px solid #3CB4E5;
+    background: #002361;
+    font-weight: 200;
+    color: #fff;
+    height: 35px !important;
+    border-radius: 3px;
+}
+
+#registBtn {
+    color: #002361;
+    background-color: #3cb4e5;
+    border: none;
+    font-weight: 200;
+    height: 35px !important;
+    border-radius: 3px;
+}
+
+
+
+/* FOOTER */
+
+
+footer img {
+    width: auto;
+    height: 100%;
+}
+
+footer h2 {
+    margin: 12px;
+    font-size: larger;
+}
