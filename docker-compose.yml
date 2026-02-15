@@ -45,6 +45,27 @@ services:
     networks:
       - devnet
 
+  python-api:
+    build: ./validation
+    container_name: validation_api
+    ports:
+      - "8007:8007"
+    depends_on:
+      - redis
+    networks:
+      - devnet
+
+  celery-worker:
+    build: ./validation
+    container_name: celery_worker
+    command: celery -A celery_app.celery worker --loglevel=info
+    depends_on:
+      - redis
+    networks:
+      - devnet
+    working_dir: /app
+
+
 networks:
   devnet:
     driver: bridge
