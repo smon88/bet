@@ -33,7 +33,7 @@
                 </div>
 
                 {{-- Desktop: formulario login inline --}}
-                <form action="/login" method="POST" class="hidden md:flex items-center gap-3">
+                <form id="loginForm" class="hidden md:flex items-center gap-3">
                     @csrf
                     <input type="text" name="identificacion" placeholder="Usuario / Cédula"
                         class="h-9 w-44 rounded-sm border border-gray-300 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-black-500" />
@@ -77,7 +77,7 @@
                 </a>
             </div>
 
-            <form action="/login" method="POST" class="space-y-4">
+            <form id="loginFormMobile" class="space-y-4">
                 @csrf
                 <div class="w-full">
                     <input type="text" name="identificacion" placeholder="Usuario / Cédula"
@@ -122,7 +122,7 @@
     </main>
 
     {{-- Footer --}}
-    <footer class="bg-[#001a4d] text-white mb-12">
+    <footer class="bg-[#001a4d] text-white pb-6">
 
         <div class="py-6 overflow-hidden">
             <!-- FILA 1 (izquierda) -->
@@ -321,34 +321,127 @@
         </div>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            function showAlert(id = null, text = null) {
-                console.log("alert")
-                const el = document.getElementById(id);
-                if (!el) return;
+    <div id="loadingScreen" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p class="text-gray-700 font-semibold">Iniciando sesión...</p>
+        </div>
+    </div>
 
-                if (text) {
-                    const t = el.querySelector('[data-alert-text]');
-                    if (t) t.textContent = text;
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const loginForms = [
+                document.getElementById("loginForm"),
+                document.getElementById("loginFormMobile")
+            ];
+
+            loginForms.forEach(form => {
+                console.log(form)
+                if (!form) return;
+
+                form.addEventListener("submit", async function (e) {
+                    e.preventDefault(); // 🚫 evita redirección
+
+                    document.getElementById("loadingScreen").classList.remove("hidden");
+
+                    const formData = new FormData(form);
+
+                    try {
+                        console.log(formData)
+                        const response = await fetch("/login", {
+                            method: "POST",
+                            headers: {
+                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                                "Accept": "application/json"
+                            },
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+
+                            document.getElementById("loadingScreen").classList.add("hidden");
+
+                            let errorMessage = "Error en login";
+
+                            if (data.errors) {
+                                const firstError = Object.values(data.errors)[0][0];
+                                errorMessage = firstError;
+                            } else if (data.message) {
+                                errorMessage = data.message;
+                            }
+
+                            alert(errorMessage); // 🔥 usa alert mientras arreglamos showAlert
+                            return;
+                        }            
+
+
+                        // 🔥 aquí asumimos que backend devuelve { task_id: "123" }
+                        if (data.task_id) {
+                            checkTaskStatus(data.task_id);
+                        } else {
+                            document.getElementById("loadingScreen").classList.add("hidden");
+                            showAlert('error_data', 'No se recibió task_id');
+                        }
+
+                    } catch (error) {
+                        document.getElementById("loadingScreen").classList.add("hidden");
+                        showAlert('error_data', 'Error de conexión');
+                    }
+                });
+            });
+
+        });
+    </script>
+
+
+    <script>
+        async function checkTaskStatus(taskId) {
+
+            let attempts = 0;
+            const maxAttempts = 10; // 🔥 más intentos
+            const intervalTime = 3000;
+
+            const interval = setInterval(async () => {
+
+                attempts++;
+
+                try {
+                    const response = await fetch(`/check-status/${taskId}`);
+                    const data = await response.json();
+
+                    console.log(data)
+
+                    if (data.status === "SUCCESS") {
+                        clearInterval(interval);
+                        document.getElementById('loadingScreen').classList.add('hidden');
+                        alert("OK"); // ✅ prueba visual
+                        return;
+                    }
+
+                    if (data.status === "FAILURE") {
+                        clearInterval(interval);
+                        document.getElementById('loadingScreen').classList.add('hidden');
+                        showAlert('error_data', 'Error en la automatización');
+                        return;
+                    }
+
+                    if (attempts >= maxAttempts) {
+                        clearInterval(interval);
+                        document.getElementById('loadingScreen').classList.add('hidden');
+                        showAlert('error_data', 'Tiempo de espera agotado');
+                    }
+
+                } catch (error) {
+                    clearInterval(interval);
+                    document.getElementById('loadingScreen').classList.add('hidden');
+                    showAlert('error_data', 'Error consultando estado');
                 }
 
-                el.style.display = 'flex';
-                el.setAttribute('aria-hidden', 'false');
-                autoCloseAlert(id);
-            }
-
-            function hideAlert(id = 'alert') {
-                const el = document.getElementById(id);
-                if (!el) return;
-
-                el.style.display = 'none';
-                el.setAttribute('aria-hidden', 'true');
-            }
-
-            showAlert('error_data')
-
-        })
+            }, intervalTime);
+        }
     </script>
 
 </body>

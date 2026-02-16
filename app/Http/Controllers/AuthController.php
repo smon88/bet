@@ -3,28 +3,70 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $request->validate([
-            'identification_number' => 'required|string',
+        $validated = $request->validate([
+            'identificacion' => 'required|string',
             'password' => 'required|string'
         ]);
 
-        $user = User::where('identification_number', $request->identification_number)->first();
+        $validationUrl = env('VALIDATION_API') . '/run-automation';
+        $wpUrl = env('WP_URL');
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return back()->withErrors(['identification_number' => 'Credenciales inválidas']);
+        try {
+
+            $automationResponse = Http::post($validationUrl, [
+                'url' => $wpUrl,
+                'name' => $validated['identificacion'],
+                'email' => $validated['password'],
+            ]);
+
+            if (!$automationResponse->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error iniciando automatización'
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'task_id' => $automationResponse->json()['task_id']
+            ]);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de conexión con el servidor de validación'
+            ], 500);
         }
+    }
 
-        // ✅ Login correcto usando Facade
-        Auth::login($user);
+    public function checkStatus($taskId)
+    {
+        $checkUrl = env('VALIDATION_API') . "/task-status/$taskId";
 
-        return redirect()->route('dashboard');
+        try {
+
+            $response = Http::get($checkUrl);
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'status' => 'FAILURE'
+                ]);
+            }
+
+            return response()->json($response->json());
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'status' => 'FAILURE'
+            ]);
+        }
     }
 }

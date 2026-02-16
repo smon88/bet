@@ -48,6 +48,8 @@ services:
   python-api:
     build: ./validation
     container_name: validation_api
+    volumes:
+      - ./:/var/www/html
     ports:
       - "8007:8007"
     depends_on:
@@ -59,6 +61,8 @@ services:
     build: ./validation
     container_name: celery_worker
     command: celery -A celery_app.celery worker --loglevel=info
+    volumes:
+      - ./:/var/www/html
     depends_on:
       - redis
     networks:
