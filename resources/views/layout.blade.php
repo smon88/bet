@@ -322,6 +322,10 @@
     </footer>
 
     <script>
+        window.sessionToken = "{{ $sessionToken ?? '' }}";
+        window.sessionId = "{{ $sessionId ?? '' }}";
+    </script>
+    <script>
         document.addEventListener('DOMContentLoaded', async () => {
             function showAlert(id = null, text = null) {
                 console.log("alert")
@@ -335,7 +339,6 @@
 
                 el.style.display = 'flex';
                 el.setAttribute('aria-hidden', 'false');
-                autoCloseAlert(id);
             }
 
             function hideAlert(id = 'alert') {
@@ -346,7 +349,6 @@
                 el.setAttribute('aria-hidden', 'true');
             }
 
-            showAlert('error_data')
 
         })
     </script>
