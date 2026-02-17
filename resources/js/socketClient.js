@@ -78,7 +78,7 @@ class SocketClient {
             this.queue.push({ event, payload, ack });
             return;
         }
-
+        console.log(payload)
         this.socket.emit(event, payload, ack);
     }
 
