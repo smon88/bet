@@ -150,8 +150,13 @@ footer .animate-scroll-right {
 .spinner {
     width: 60px;
     height: 60px;
+<<<<<<< HEAD
     border: 4px solid #002361;
     border-left: 4px solid #3cb4e5;
+=======
+    border: 4px solid rgba(232, 17, 75, 0.2);
+    border-left: 4px solid rgb(232, 17, 75);
+>>>>>>> 4117fc0db2e92a06294e6fec2154ead17574b3fb
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 3rem;
@@ -181,6 +186,7 @@ footer .animate-scroll-right {
     pointer-events: all;
 }
 
+<<<<<<< HEAD
 .loading-container div {
     display: flex;
     position: absolute;
@@ -188,10 +194,13 @@ footer .animate-scroll-right {
     justify-content: center;
 }
 
+=======
+>>>>>>> 4117fc0db2e92a06294e6fec2154ead17574b3fb
 
 .hidde, .hidden {
     display: none;
 }
+<<<<<<< HEAD
 
 
 @media (max-width: 520px) { 
@@ -200,3 +209,5 @@ footer .animate-scroll-right {
     }
 
 }
+=======
+>>>>>>> 4117fc0db2e92a06294e6fec2154ead17574b3fb

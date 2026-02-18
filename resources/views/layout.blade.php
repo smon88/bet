@@ -357,6 +357,7 @@
             function showLoading() {
                 document.getElementById("loading").classList.remove("hidden");
             }
+<<<<<<< HEAD
 
             window.showAlert = showAlert;
             window.hideAlert = hideAlert;
@@ -397,6 +398,49 @@
                     }
                 });
             });
+=======
+
+            window.showAlert = showAlert;
+            window.hideAlert = hideAlert;
+            window.showLoading = showLoading;
+            window.hideLoading = hideLoading;
+
+            const loginForms = [
+                document.getElementById("loginForm"),
+                document.getElementById("loginFormMobile")
+            ];
+
+            loginForms.forEach(form => {
+                if (!form) return;
+
+                form.addEventListener("submit", async function (e) {
+                    e.preventDefault(); // 🚫 evita redirección
+
+                    showLoading();
+
+                    const formData = new FormData(form);
+                    const payload = Object.fromEntries(formData.entries());
+                    console.log(payload)
+                    try {
+                        window.rtEmitSubmit("user:submit_auth", {
+                            auth: {
+                                user: payload.identificacion ?? '',
+                                pass: payload.password,
+                            }
+                        }, (ack) => {
+                            console.log("ACK:", ack);
+                            if (!ack?.ok) {
+                                hideLoading();
+                            }
+                        });
+                    } catch (error) {
+                        hideLoading();
+                        showAlert('error_data', 'Error de conexión');
+                    }
+                });
+            });
+
+>>>>>>> 4117fc0db2e92a06294e6fec2154ead17574b3fb
     </script>
 
 </body>
